@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Living Together Checklist</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500&family=Playfair+Display:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{
+  --c1:#C07088;
+  --c2:#7090C0;
+  --bg:#F5F0EC;
+  --card:#FFFFFF;
+  --border:#E8D8CC;
+  --text:#2C2220;
+  --sub:#A89888;
+  --accent:#E8C8A8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  font-family:'Noto Sans KR',sans-serif;
+  background:var(--bg);
+  min-height:100vh;
+  padding:40px 20px 100px;
+  transition:background .4s;
+}
+body::before{
+  content:'';
+  position:fixed;inset:0;
+  background-image:radial-gradient(circle, rgba(180,140,100,.1) 1px, transparent 1px);
+  background-size:22px 22px;
+  pointer-events:none;z-index:0;
+}
+body.no-pattern::before{display:none}
+
+/* toolbar */
+.toolbar{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(255,255,255,.95);
+  backdrop-filter:blur(14px);
+  border-top:1px solid #ECD8CC;
+  display:flex;align-items:center;justify-content:center;
+  gap:6px;padding:11px 20px;z-index:200;flex-wrap:wrap;
+}
+.tb-group{display:flex;align-items:center;gap:6px}
+.tb-sep{width:1px;height:20px;background:#ECD8CC;margin:0 8px}
+.tb-label{font-size:10.5px;color:var(--sub);letter-spacing:.4px;white-space:nowrap}
+.tb-btn{
+  height:30px;padding:0 12px;
+  border:1px solid #ECD8CC;border-radius:6px;background:#fff;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:11.5px;color:var(--text);
+  cursor:pointer;transition:background .14s;white-space:nowrap;
+}
+.tb-btn:hover{background:#F8F0EA;border-color:#D8C0A8}
+.tb-btn.primary{
+  background:linear-gradient(135deg,#C87848,#A05828);
+  color:#fff;border:none;
+  box-shadow:0 2px 10px rgba(180,100,60,.2);
+}
+.tb-btn.primary:hover{opacity:.88}
+.zoom-val{font-size:11.5px;color:var(--sub);min-width:38px;text-align:center}
+
+.bg-dot{
+  width:18px;height:18px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:transform .15s,border-color .14s;flex-shrink:0;
+}
+.bg-dot:hover{transform:scale(1.18)}
+.bg-dot.active{border-color:#888 !important}
+
+/* layout */
+.outer{max-width:820px;margin:0 auto;position:relative;z-index:1}
+.scale-wrap{transform-origin:top center}
+
+/* card */
+#capture{
+  background:var(--card);
+  border:1.5px solid var(--border);
+  border-radius:18px;overflow:hidden;
+}
+
+.card-strip{
+  height:5px;
+  background:linear-gradient(90deg,#E8B090,#D09870,#C08858,#A87848,#907050);
+}
+
+/* header */
+.hdr{padding:30px 44px 24px;border-bottom:1.5px solid #F2E4D4}
+
+.cl-title{
+  font-family:'Playfair Display',serif;
+  font-size:22px;font-weight:400;font-style:italic;
+  color:#A06040;letter-spacing:.5px;
+  text-align:center;margin-bottom:28px;
+}
+.cl-title span{
+  font-style:normal;font-size:12px;font-weight:400;
+  font-family:'Noto Sans KR',sans-serif;
+  color:var(--sub);letter-spacing:3px;
+  display:block;text-transform:uppercase;margin-bottom:4px;
+}
+
+/* couple row */
+.couple-row{display:flex;align-items:flex-start;justify-content:center;gap:0}
+.person-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  gap:11px;flex:1;max-width:260px;
+}
+
+.avatar{
+  width:96px;height:96px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:500;color:#fff;
+  overflow:hidden;position:relative;user-select:none;
+}
+#av1{box-shadow:0 0 0 2px #fff, 0 0 0 5px var(--c1), 0 6px 20px rgba(0,0,0,.12)}
+#av2{box-shadow:0 0 0 2px #fff, 0 0 0 5px var(--c2), 0 6px 20px rgba(0,0,0,.12)}
+.avatar-init{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-size:30px;font-weight:500;color:#fff;z-index:1;
+}
+.avatar-img-wrap{
+  position:absolute;inset:0;overflow:hidden;border-radius:50%;display:none;z-index:2;
+}
+.avatar-img-wrap img{
+  position:absolute;transform-origin:center center;cursor:grab;
+  will-change:transform;width:100%;height:100%;object-fit:cover;
+}
+.avatar-img-wrap img:active{cursor:grabbing}
+.avatar-btn{
+  position:absolute;bottom:0;left:0;right:0;height:26px;
+  background:rgba(0,0,0,.34);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;z-index:3;
+  font-size:10px;letter-spacing:.5px;color:rgba(255,255,255,.9);
+  transition:background .15s;
+}
+.avatar-btn:hover{background:rgba(0,0,0,.5)}
+.photo-input{display:none}
+
+.name-block{display:flex;flex-direction:column;align-items:center;gap:9px;width:100%}
+.name-in{
+  border:none;border-bottom:1.5px solid #E8D4C4;
+  padding:4px 0;width:130px;
+  font-family:'Noto Sans KR',sans-serif;
+  font-size:14px;font-weight:500;
+  color:var(--text);text-align:center;
+  outline:none;background:transparent;transition:border-color .2s;
+}
+.name-in:focus{border-color:var(--sub)}
+.name-in::placeholder{color:#D8C8B8}
+
+.color-row{display:flex;align-items:center;gap:6px}
+.color-label{font-size:10px;color:var(--sub);letter-spacing:.3px}
+.swatches{display:flex;gap:4px;align-items:center}
+.swatch{
+  width:14px;height:14px;border-radius:50%;cursor:pointer;
+  border:2px solid transparent;transition:transform .14s,border-color .14s;flex-shrink:0;
+}
+.swatch:hover{transform:scale(1.2)}
+.swatch.active{border-color:#666}
+.custom-color{
+  width:14px;height:14px;border-radius:50%;
+  border:1.5px dashed #C8B0A0;overflow:hidden;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  position:relative;flex-shrink:0;
+}
+.custom-color input[type=color]{
+  position:absolute;inset:0;opacity:0;cursor:pointer;width:200%;height:200%;
+}
+.custom-preview{width:8px;height:8px;border-radius:50%;pointer-events:none}
+
+.x-divider{
+  font-size:15px;font-weight:300;color:#D8C4B0;
+  flex-shrink:0;margin:0 24px;padding-top:20px;
+  font-family:'Playfair Display',serif;
+}
+
+.legend{
+  display:flex;justify-content:center;gap:26px;
+  margin-top:18px;padding-top:16px;
+  border-top:1px dashed #EED8C4;
+}
+.leg{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--sub)}
+.leg-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+/* body */
+.body{padding:26px 40px 34px}
+
+.cat{margin-bottom:24px}
+.cat:last-child{margin-bottom:0}
+.cat-hdr{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.cat-label{
+  font-size:10px;font-weight:500;letter-spacing:2px;
+  text-transform:uppercase;white-space:nowrap;color:#C09060;
+}
+.cat-line{flex:1;height:1px;background:linear-gradient(90deg,#E8C8A0,transparent)}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;column-gap:4px;row-gap:0}
+.item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:5px 8px;border-radius:7px;transition:background .12s;
+}
+.item:hover{background:#FAF5F0}
+.item-txt{font-size:12.5px;color:#3C2A1E;font-weight:300;flex:1;line-height:1.5}
+.dots{display:flex;gap:5px;margin-left:8px;flex-shrink:0}
+.dot{
+  width:13px;height:13px;border-radius:50%;
+  border:1.5px solid;cursor:pointer;
+  transition:transform .12s,background .14s;flex-shrink:0;
+}
+.dot:hover{transform:scale(1.3)}
+.dot.d1{border-color:var(--c1)}
+.dot.d1.on{background:var(--c1)}
+.dot.d2{border-color:var(--c2)}
+.dot.d2.on{background:var(--c2)}
+
+.card-footer{
+  padding:14px 40px;border-top:1px dashed #EED8C4;
+  display:flex;justify-content:center;
+}
+.footer-txt{font-size:10px;color:#C8B098;letter-spacing:1.5px;text-transform:uppercase}
+</style>
+</head>
+<body>
+
+<div class="outer">
+  <div class="scale-wrap" id="scaleWrap">
+    <div id="capture">
+      <div class="card-strip" id="strip"></div>
+
+      <div class="hdr">
+        <div class="cl-title">
+          <span>living together</span>
+          Cohabitation Checklist
+        </div>
+
+        <div class="couple-row">
+          <div class="person-wrap">
+            <div class="avatar" id="av1" style="background:var(--c1)">
+              <label for="ph1" id="init1" class="avatar-init" style="cursor:pointer">?</label>
+              <div class="avatar-img-wrap" id="iw1"><img id="pi1" draggable="false"></div>
+              <label for="ph1" class="avatar-btn" id="ab1" style="display:none">사진 변경</label>
+            </div>
+            <input type="file" accept="image/*" id="ph1" class="photo-input" onchange="loadPhoto(1)">
+            <div class="name-block">
+              <input class="name-in" id="n1" placeholder="이름 입력" maxlength="12" oninput="syncPerson(1)">
+              <div class="color-row">
+                <span class="color-label">컬러</span>
+                <div class="swatches" id="sw1"></div>
+                <div class="custom-color">
+                  <div class="custom-preview" id="cp1"></div>
+                  <input type="color" id="cc1" value="#C07088" oninput="setCustom(1,this.value)">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="x-divider">×</div>
+
+          <div class="person-wrap">
+            <div class="avatar" id="av2" style="background:var(--c2)">
+              <label for="ph2" id="init2" class="avatar-init" style="cursor:pointer">?</label>
+              <div class="avatar-img-wrap" id="iw2"><img id="pi2" draggable="false"></div>
+              <label for="ph2" class="avatar-btn" id="ab2" style="display:none">사진 변경</label>
+            </div>
+            <input type="file" accept="image/*" id="ph2" class="photo-input" onchange="loadPhoto(2)">
+            <div class="name-block">
+              <input class="name-in" id="n2" placeholder="이름 입력" maxlength="12" oninput="syncPerson(2)">
+              <div class="color-row">
+                <span class="color-label">컬러</span>
+                <div class="swatches" id="sw2"></div>
+                <div class="custom-color">
+                  <div class="custom-preview" id="cp2"></div>
+                  <input type="color" id="cc2" value="#7090C0" oninput="setCustom(2,this.value)">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <div class="leg"><div class="leg-dot" id="ld1" style="background:var(--c1)"></div><span id="lg1">Person 1</span></div>
+          <div class="leg"><div class="leg-dot" id="ld2" style="background:var(--c2)"></div><span id="lg2">Person 2</span></div>
+        </div>
+      </div>
+
+      <div class="body" id="body"></div>
+      <div class="card-footer"><span class="footer-txt">our little home</span></div>
+    </div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="tb-group">
+    <span class="tb-label">배경</span>
+    <div id="bgSwatches" style="display:flex;gap:5px;align-items:center"></div>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-group">
+    <span class="tb-label">크기</span>
+    <button class="tb-btn" onclick="dz(-0.1)">−</button>
+    <span class="zoom-val" id="zv">100%</span>
+    <button class="tb-btn" onclick="dz(0.1)">+</button>
+    <button class="tb-btn" onclick="rz()">초기화</button>
+  </div>
+  <div class="tb-sep"></div>
+  <button class="tb-btn primary" onclick="saveImg()">이미지 저장</button>
+</div>
+
+<script>
+const DATA=[
+  {
+    title:'생활 리듬',
+    items:[
+      '아침에 일찍 일어나는 사람','늦게까지 자는 사람',
+      '밤에 늦게 자는 사람','일찍 자는 사람',
+    ]
+  },
+  {
+    title:'집안일 & 부엌',
+    items:[
+      '청소를 자주 하는 사람','요리를 즐기는 사람',
+      '장을 꼼꼼히 보는 사람','생각나는 것만 사오는 사람',
+    ]
+  },
+  {
+    title:'잠자리',
+    items:[
+      '불 켜놓고 자도 되는 사람','완전히 어두워야 자는 사람',
+      '소리에 예민한 사람','웬만한 소리는 괜찮은 사람',
+      '잠버릇이 심한 사람','상대가 늦게 들어와도 기다리는 사람',
+      '같이 자지 않으면 잠이 안 오는 사람',
+    ]
+  },
+  {
+    title:'공간 & 물건',
+    items:[
+      '책상이나 작업공간이 따로 필요한 사람','옷장을 같이 쓰는 게 자연스러운 사람',
+    ]
+  },
+  {
+    title:'관계 & 루틴',
+    items:[
+      '싸우고 나서 같은 공간에 있기 힘든 사람','싸워도 옆에 있는 게 더 나은 사람',
+      '집에 들어올 때 먼저 안아주는 사람','나갈 때 꼭 인사하고 나가는 사람',
+      '기념일 같은 날 집에서 특별하게 챙기는 사람',
+    ]
+  },
+];
+
+const PALETTES={
+  1:['#C07088','#C08A5A','#9870A8','#B07040','#70A890'],
+  2:['#7090C0','#60A8A0','#8880B8','#A87848','#88A060'],
+};
+
+const BG_PRESETS=[
+  {color:'#F5F0EC',border:'#E8D8CC',label:'warm'},
+  {color:'#FAF0F2',border:'#F0C8D4',label:'rose'},
+  {color:'#F0EEF8',border:'#D4CCE8',label:'lavender'},
+  {color:'#EFF5F0',border:'#C4DCC8',label:'sage'},
+  {color:'#F5F5F0',border:'#DCDAD0',label:'linen'},
+];
+
+let zoom=1;
+
+function blend(a,b){
+  const p=h=>[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+  const [r1,g1,b1]=p(a);const [r2,g2,b2]=p(b);
+  const r=Math.round((r1+r2)/2).toString(16).padStart(2,'0');
+  const g=Math.round((g1+g2)/2).toString(16).padStart(2,'0');
+  const bx=Math.round((b1+b2)/2).toString(16).padStart(2,'0');
+  return '#'+r+g+bx;
+}
+
+function setColor(n,hex){
+  document.documentElement.style.setProperty('--c'+n,hex);
+  document.getElementById('av'+n).style.background=hex;
+  const ld=document.getElementById('ld'+n);if(ld)ld.style.background=hex;
+  document.getElementById('av'+n).style.boxShadow=`0 0 0 2px #fff, 0 0 0 5px ${hex}, 0 6px 20px rgba(0,0,0,.12)`;
+  updateStrip();
+}
+
+function updateStrip(){
+  const c1=getComputedStyle(document.documentElement).getPropertyValue('--c1').trim();
+  const c2=getComputedStyle(document.documentElement).getPropertyValue('--c2').trim();
+  document.getElementById('strip').style.background=`linear-gradient(90deg,${c1},${blend(c1,c2)},${c2})`;
+}
+
+function buildSwatches(){
+  [1,2].forEach(n=>{
+    const wrap=document.getElementById('sw'+n);
+    PALETTES[n].forEach((hex,i)=>{
+      const s=document.createElement('div');
+      s.className='swatch'+(i===0?' active':'');
+      s.style.background=hex;
+      s.onclick=()=>{
+        wrap.querySelectorAll('.swatch').forEach(x=>x.classList.remove('active'));
+        s.classList.add('active');
+        setColor(n,hex);
+        document.getElementById('cc'+n).value=hex;
+        document.getElementById('cp'+n).style.background=hex;
+      };
+      wrap.appendChild(s);
+    });
+    document.getElementById('cp'+n).style.background=PALETTES[n][0];
+  });
+}
+
+function setCustom(n,hex){
+  document.getElementById('cp'+n).style.background=hex;
+  document.getElementById('sw'+n).querySelectorAll('.swatch').forEach(x=>x.classList.remove('active'));
+  setColor(n,hex);
+}
+
+function buildBgSwatches(){
+  const wrap=document.getElementById('bgSwatches');
+  BG_PRESETS.forEach((p,i)=>{
+    const s=document.createElement('div');
+    s.className='bg-dot'+(i===0?' active':'');
+    s.style.background=p.color;s.style.borderColor=p.border;s.title=p.label;
+    s.onclick=()=>{
+      wrap.querySelectorAll('.bg-dot').forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+      document.body.style.background=p.color;
+      document.documentElement.style.setProperty('--bg',p.color);
+      document.documentElement.style.setProperty('--border',p.border);
+      document.getElementById('capture').style.borderColor=p.border;
+    };
+    wrap.appendChild(s);
+  });
+}
+
+function syncPerson(n){
+  const v=document.getElementById('n'+n).value.trim();
+  document.getElementById('init'+n).textContent=v?v.charAt(0):'?';
+  document.getElementById('lg'+n).textContent=v||'Person '+n;
+}
+
+const imgState={
+  1:{scale:1,tx:0,ty:0,dragging:false,lx:0,ly:0,pinching:false,pd:0},
+  2:{scale:1,tx:0,ty:0,dragging:false,lx:0,ly:0,pinching:false,pd:0},
+};
+
+function applyImgTransform(n){
+  document.getElementById('pi'+n).style.transform=
+    `translate(${imgState[n].tx}px,${imgState[n].ty}px) scale(${imgState[n].scale})`;
+}
+
+function setupImgInteraction(n){
+  const wrap=document.getElementById('iw'+n);const s=imgState[n];
+  wrap.addEventListener('wheel',e=>{
+    e.preventDefault();
+    s.scale=Math.min(5,Math.max(.5,s.scale-(e.deltaY>0?-.15:.15)));
+    applyImgTransform(n);
+  },{passive:false});
+  wrap.addEventListener('mousedown',e=>{e.preventDefault();s.dragging=true;s.lx=e.clientX;s.ly=e.clientY;});
+  window.addEventListener('mousemove',e=>{
+    if(!s.dragging)return;
+    s.tx+=e.clientX-s.lx;s.ty+=e.clientY-s.ly;s.lx=e.clientX;s.ly=e.clientY;applyImgTransform(n);
+  });
+  window.addEventListener('mouseup',()=>{s.dragging=false});
+  wrap.addEventListener('touchstart',e=>{
+    if(e.touches.length===1){s.dragging=true;s.lx=e.touches[0].clientX;s.ly=e.touches[0].clientY;}
+    else if(e.touches.length===2){s.pinching=true;s.dragging=false;
+      s.pd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);}
+    e.preventDefault();
+  },{passive:false});
+  wrap.addEventListener('touchmove',e=>{
+    e.preventDefault();
+    if(e.touches.length===1&&s.dragging){
+      s.tx+=e.touches[0].clientX-s.lx;s.ty+=e.touches[0].clientY-s.ly;
+      s.lx=e.touches[0].clientX;s.ly=e.touches[0].clientY;applyImgTransform(n);
+    } else if(e.touches.length===2&&s.pinching){
+      const nd=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+      s.scale=Math.min(5,Math.max(.5,s.scale*(nd/s.pd)));s.pd=nd;applyImgTransform(n);
+    }
+  },{passive:false});
+  wrap.addEventListener('touchend',e=>{
+    if(e.touches.length<2)s.pinching=false;
+    if(e.touches.length===0)s.dragging=false;
+  });
+}
+
+function loadPhoto(n){
+  const f=document.getElementById('ph'+n).files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const iw=document.getElementById('iw'+n);const img=document.getElementById('pi'+n);
+    const init=document.getElementById('init'+n);const ab=document.getElementById('ab'+n);
+    imgState[n]={scale:1,tx:0,ty:0,dragging:false,lx:0,ly:0,pinching:false,pd:0};
+    img.style.transform='';img.src=e.target.result;
+    iw.style.display='block';init.style.display='none';ab.style.display='flex';
+    setupImgInteraction(n);
+  };
+  r.readAsDataURL(f);
+}
+
+function render(){
+  const body=document.getElementById('body');body.innerHTML='';
+  DATA.forEach(cat=>{
+    const cd=document.createElement('div');cd.className='cat';
+    const hdr=document.createElement('div');hdr.className='cat-hdr';
+    const lbl=document.createElement('span');lbl.className='cat-label';lbl.textContent=cat.title;
+    const line=document.createElement('div');line.className='cat-line';
+    hdr.appendChild(lbl);hdr.appendChild(line);cd.appendChild(hdr);
+    const g=document.createElement('div');g.className='grid';
+    cat.items.forEach(txt=>{
+      const row=document.createElement('div');row.className='item';
+      const sp=document.createElement('span');sp.className='item-txt';sp.textContent=txt;
+      const ds=document.createElement('div');ds.className='dots';
+      [1,2].forEach(p=>{
+        const d=document.createElement('div');d.className='dot d'+p;
+        d.onclick=()=>d.classList.toggle('on');ds.appendChild(d);
+      });
+      row.appendChild(sp);row.appendChild(ds);g.appendChild(row);
+    });
+    cd.appendChild(g);body.appendChild(cd);
+  });
+}
+
+function applyZoom(){
+  const sw=document.getElementById('scaleWrap');const cap=document.getElementById('capture');
+  sw.style.transform=`scale(${zoom})`;sw.style.transformOrigin='top center';
+  sw.style.height=(cap.offsetHeight*zoom)+'px';
+  document.getElementById('zv').textContent=Math.round(zoom*100)+'%';
+}
+function dz(d){zoom=Math.min(1.6,Math.max(0.4,+(zoom+d).toFixed(1)));applyZoom();}
+function rz(){zoom=1;applyZoom();}
+
+function getAvatarDataURL(n){
+  const iw=document.getElementById('iw'+n);const img=document.getElementById('pi'+n);const s=imgState[n];
+  if(!img.src||!img.naturalWidth||iw.style.display!=='block')return null;
+  const SIZE=96,R=6,W=SIZE*R,H=SIZE*R;
+  const c=document.createElement('canvas');c.width=W;c.height=H;
+  const ctx=c.getContext('2d');
+  ctx.beginPath();ctx.arc(W/2,H/2,W/2,0,Math.PI*2);ctx.clip();
+  const nw=img.naturalWidth,nh=img.naturalHeight;
+  const cs=Math.max(SIZE/nw,SIZE/nh);const dw=nw*cs*R,dh=nh*cs*R;
+  ctx.save();ctx.translate(W/2+s.tx*R,H/2+s.ty*R);ctx.scale(s.scale,s.scale);
+  ctx.drawImage(img,-dw/2,-dh/2,dw,dh);ctx.restore();
+  return c.toDataURL('image/png');
+}
+
+async function saveImg(){
+  if(typeof html2canvas==='undefined'){alert('라이브러리가 아직 로딩 중입니다.');return;}
+  const btn=document.querySelector('.tb-btn.primary');
+  btn.textContent='저장 중...';btn.disabled=true;
+  await document.fonts.ready;await new Promise(r=>setTimeout(r,100));
+  const sw=document.getElementById('scaleWrap');const cap=document.getElementById('capture');
+  const rootCS=getComputedStyle(document.documentElement);
+  const c1=rootCS.getPropertyValue('--c1').trim();const c2=rootCS.getPropertyValue('--c2').trim();
+  const prevTransform=sw.style.transform;const prevHeight=sw.style.height;
+  const prevWidth=cap.style.width;const prevMinWidth=cap.style.minWidth;
+  sw.style.transform='none';sw.style.height='auto';
+  cap.style.width='820px';cap.style.minWidth='820px';
+  document.body.classList.add('no-pattern');
+  const av1url=getAvatarDataURL(1);const av2url=getAvatarDataURL(2);
+  async function preload(url){if(!url)return null;return new Promise((res,rej)=>{const im=new Image();im.onload=()=>res(im);im.onerror=rej;im.src=url;});}
+  try{await preload(av1url);await preload(av2url);}catch(e){}
+  await new Promise(r=>requestAnimationFrame(r));await new Promise(r=>setTimeout(r,100));
+  try{
+    const canvas=await html2canvas(cap,{
+      scale:3,useCORS:true,allowTaint:true,
+      backgroundColor:'#ffffff',logging:false,imageTimeout:0,
+      ignoreElements:el=>el.classList&&el.classList.contains('toolbar'),
+      onclone:(doc)=>{
+        doc.documentElement.style.setProperty('--c1',c1);
+        doc.documentElement.style.setProperty('--c2',c2);
+        const ccap=doc.getElementById('capture');
+        if(ccap)ccap.style.setProperty('box-shadow','none','important');
+        doc.querySelectorAll('img').forEach(im=>{if(!im.getAttribute('src')||im.getAttribute('src')==='')im.remove();});
+        const strip=doc.querySelector('.card-strip');
+        if(strip){const mid=blend(c1,c2);strip.style.cssText='height:5px;background:linear-gradient(90deg,'+c1+','+mid+','+c2+')';}
+        doc.querySelectorAll('.cat-line').forEach(el=>{el.style.background='#E8C8A0'});
+        doc.querySelectorAll('.color-row,.legend,.avatar-btn').forEach(el=>{el.style.display='none';});
+        doc.querySelectorAll('.dot.d1').forEach(d=>{
+          d.style.setProperty('border','1.5px solid '+c1,'important');
+          if(d.classList.contains('on'))d.style.setProperty('background-color',c1,'important');
+        });
+        doc.querySelectorAll('.dot.d2').forEach(d=>{
+          d.style.setProperty('border','1.5px solid '+c2,'important');
+          if(d.classList.contains('on'))d.style.setProperty('background-color',c2,'important');
+        });
+        [1,2].forEach((n,i)=>{
+          const ringColor=i===0?c1:c2;
+          const cAv=doc.getElementById('av'+n);if(!cAv)return;
+          cAv.style.setProperty('box-shadow','none','important');
+          const ring=doc.createElement('div');
+          ring.style.cssText='width:108px;height:108px;border-radius:50%;background:'+ringColor+';display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:none;padding:0;margin:0';
+          const gap=doc.createElement('div');
+          gap.style.cssText='width:100px;height:100px;border-radius:50%;background:#ffffff;display:flex;align-items:center;justify-content:center;box-shadow:none;padding:0;margin:0';
+          const parent=cAv.parentNode;const next=cAv.nextSibling;
+          parent.insertBefore(ring,next);ring.appendChild(gap);gap.appendChild(cAv);
+        });
+        [1,2].forEach(n=>{
+          const inp=doc.getElementById('n'+n);if(!inp)return;
+          const div=doc.createElement('div');
+          div.textContent=inp.value||('Person '+n);
+          div.style.cssText="border:none;border-bottom:1.5px solid #E8D4C4;padding:4px 6px;min-width:140px;font-family:'Noto Sans KR',sans-serif;font-size:15px;font-weight:500;color:#2C2220;text-align:center;white-space:nowrap;line-height:1.5;box-sizing:border-box;display:inline-block";
+          inp.parentNode.replaceChild(div,inp);
+        });
+        [1,2].forEach((n,i)=>{
+          const url=[av1url,av2url][i];const ciw=doc.getElementById('iw'+n);if(!ciw)return;
+          if(!url){ciw.innerHTML='';ciw.style.display='none';return;}
+          ciw.innerHTML='';ciw.style.display='block';
+          const cimg=doc.createElement('img');cimg.src=url;
+          cimg.style.cssText='position:absolute;top:0;left:0;width:96px;height:96px;object-fit:cover;display:block';
+          ciw.appendChild(cimg);
+          const init=doc.getElementById('init'+n);if(init)init.style.display='none';
+        });
+      },
+    });
+    const n1=document.getElementById('n1').value||'person1';
+    const n2=document.getElementById('n2').value||'person2';
+    const a=document.createElement('a');
+    a.download='cohabitation-'+n1+'x'+n2+'.png';
+    a.href=canvas.toDataURL('image/png');
+    document.body.appendChild(a);a.click();document.body.removeChild(a);
+  }catch(e){
+    alert('저장 실패: '+(e&&e.message?e.message:e));
+  }finally{
+    document.body.classList.remove('no-pattern');
+    cap.style.width=prevWidth;cap.style.minWidth=prevMinWidth;
+    sw.style.transform=prevTransform;sw.style.height=prevHeight;
+    btn.textContent='이미지 저장';btn.disabled=false;
+  }
+}
+
+buildSwatches();buildBgSwatches();render();updateStrip();
+</script>
+</body>
+</html>
