@@ -145,6 +145,13 @@ input{font:inherit;color:inherit}
 .gcustom{display:flex;align-items:center;gap:6px;margin-left:2px;padding-left:9px;border-left:1px solid #EEE9EA}
 @media (hover:hover){.pn-x:hover{background:#F4F2F2;color:#1f1b1c}}
 
+
+/* ---------- trait row fixes: room for 100%, one fill color ---------- */
+.traits{max-width:244px}
+.tr-v{width:34px;white-space:nowrap;font-variant-numeric:normal;letter-spacing:0}
+.ax .tr{gap:7px}
+.ax .tr:not(.best) .tr-fill,.tr.one .tr-fill{opacity:1}
+
 /* ---------- mobile ---------- */
 @media (max-width:600px){
   body{padding:12px 8px 90px}
